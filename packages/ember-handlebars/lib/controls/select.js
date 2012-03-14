@@ -17,7 +17,7 @@ Ember.Select = Ember.View.extend(
   /** @scope Ember.Select.prototype */ {
 
   tagName: 'select',
-  defaultTemplate: Ember.Handlebars.compile('{{#if view.prompt}}<option>{{view.prompt}}</option>{{/if}}{{#each view.content}}{{view Ember.SelectOption contentBinding="this"}}{{/each}}'),
+  defaultTemplate: Ember.Handlebars.compile('{{#if view.prompt}}<option>{{view.prompt}}</option>{{/if}}{{#each view.content}}{{view Ember.SelectOption contentBinding="' + Ember.CONTEXT_SCOPE + '"}}{{/each}}'),
   attributeBindings: ['multiple'],
 
   /**

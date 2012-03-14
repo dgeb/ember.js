@@ -51,6 +51,12 @@
 
     var noViewPreservesContext = QUnit.urlParams.noviewpreservescontext;
     ENV['VIEW_PRESERVES_CONTEXT'] = !noViewPreservesContext;
+
+    // Handle context scope
+    QUnit.config.urlConfig.push('nocontextscope');
+
+    var noContextScope = QUnit.urlParams.nocontextscope;
+    ENV['USE_CONTEXT_SCOPE'] = !noContextScope;
   </script>
 </head>
 <body>

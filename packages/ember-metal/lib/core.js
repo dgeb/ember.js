@@ -150,6 +150,31 @@ Ember.CP_DEFAULT_CACHEABLE = !!Ember.ENV.CP_DEFAULT_CACHEABLE;
 Ember.VIEW_PRESERVES_CONTEXT = !!Ember.ENV.VIEW_PRESERVES_CONTEXT;
 
 /**
+  @static
+  @type Boolean
+  @default false
+  @constant
+
+  Instead of `this`, the more explicit `context` is used to refer to the current
+  binding context. `this` is re-purposed to allow objects to reference themselves
+  from within their own declaration.
+
+  This is particularly useful for class bindings, as shown below:
+
+      // Before:
+      {{#each App.photosController}}
+        {{view App.InfoView contentBinding="this"}}
+      {{/each}}
+
+      // After (note the previously impossible classBinding for App.InfoView):
+      {{#each App.photosController}}
+        {{view App.InfoView contentBinding="context" classBinding="this.isHighlighted:hi"}}
+      {{/each}}
+*/
+Ember.USE_CONTEXT_SCOPE = !!Ember.ENV.USE_CONTEXT_SCOPE;
+Ember.CONTEXT_SCOPE = Ember.USE_CONTEXT_SCOPE ? 'context' : 'this';
+
+/**
   Empty function.  Useful for some operations.
 
   @returns {Object}

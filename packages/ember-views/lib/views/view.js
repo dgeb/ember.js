@@ -30,6 +30,9 @@ var childViewsProperty = Ember.computed(function() {
 var VIEW_PRESERVES_CONTEXT = Ember.VIEW_PRESERVES_CONTEXT;
 Ember.warn("The way that the {{view}} helper affects templates is about to change. Previously, templates inside child views would use the new view as the context. Soon, views will preserve their parent context when rendering their template. You can opt-in early to the new behavior by setting `ENV.VIEW_PRESERVES_CONTEXT = true`. For more information, see https://gist.github.com/2494968. You should update your templates as soon as possible; this default will change soon, and the option will be eliminated entirely before the 1.0 release.", VIEW_PRESERVES_CONTEXT);
 
+var USE_CONTEXT_SCOPE = Ember.USE_CONTEXT_SCOPE;
+Ember.warn("The usage of `this` is changing within templates. Instead of `this`, the more explicit `context` will be used to refer to the current binding context. `this` will be re-purposed to allow objects to reference themselves from within their own declaration. You can opt-in early to the new behavior by setting `ENV.USE_CONTEXT_SCOPE = true`. You should update your templates as soon as possible; this default will change soon, and the option will be eliminated entirely before the 1.0 release.", USE_CONTEXT_SCOPE);
+
 /**
   @static
 

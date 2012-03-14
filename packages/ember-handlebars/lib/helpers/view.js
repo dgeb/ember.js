@@ -39,7 +39,8 @@ EmberHandlebars.ViewHelper = Ember.Object.create({
     }
 
     if (hash.classNameBindings) {
-      extensions.classNameBindings = hash.classNameBindings.split(' ');
+      if (extensions.classNameBindings === undefined) extensions.classNameBindings = [];
+      extensions.classNameBindings = extensions.classNameBindings.concat(hash.classNameBindings.split(' '));
       dup = true;
     }
 
@@ -56,27 +57,57 @@ EmberHandlebars.ViewHelper = Ember.Object.create({
       delete hash.classBinding;
     }
 
-    // Look for bindings passed to the helper and, if they are
-    // local, make them relative to the current context instead of the
-    // view.
-    var path, normalized;
+    // Adjust the context of bindings so that they can be evaluated from the view class.
+    // This applies to regular attribute bindings as well as class name bindings.
+    var path;
 
+    // Evaluate the context of regular attribute bindings:
     for (var prop in hash) {
       if (!hash.hasOwnProperty(prop)) { continue; }
 
       // Test if the property ends in "Binding"
       if (Ember.IS_BINDING.test(prop)) {
-        path = hash[prop];
+        path = this.contextualizeBindingPath(hash[prop], data);
+        if (path) { hash[prop] = path; }
+      }
+    }
 
-        normalized = Ember.Handlebars.normalizePath(null, path, data);
-        if (normalized.isKeyword) {
-          hash[prop] = 'templateData.keywords.'+path;
-        } else if (!Ember.isGlobalPath(path)) {
-          if (path === 'this') {
-            hash[prop] = 'bindingContext';
-          } else {
-            hash[prop] = 'bindingContext.'+path;
-          }
+    // IMPORTANT: consistent evaluation of the context of class name bindings was introduced at the
+    // same time as Ember.USE_CONTEXT_SCOPE. To avoid unexpected breaking changes, let's only evaluate
+    // the context of class name bindings properly when this flag has been set.
+    if (Ember.USE_CONTEXT_SCOPE  && extensions.classNameBindings) {
+      var full,
+          parts;
+
+      for (var b in extensions.classNameBindings) {
+        full = extensions.classNameBindings[b];
+        if (full.indexOf(':') > 0) {
+          // When a classNameBinding contains a colon anywhere after the first character,
+          // then the part preceding the colon is a binding path that needs to be
+          // contextualized.
+          //
+          // For example:
+          //   classNameBinding="isGreen:green"
+          //
+          // Will be converted to:
+          //   classNameBinding="bindingContext.isGreen:green"
+
+          parts = full.split(':');
+          path = this.contextualizeBindingPath(parts[0], data);
+          if (path) { extensions.classNameBindings[b] = path + ':' + parts[1]; }
+
+        } else if (full.indexOf(':') === -1 ) {
+          // When a classNameBinding doesn't contain any colons, then the entire binding
+          // needs to be contextualized.
+          //
+          // For example:
+          //   classNameBinding="myClass"
+          //
+          // Will be converted to:
+          //   classNameBinding="bindingContext.myClass"
+
+          path = this.contextualizeBindingPath(full, data);
+          if (path) { extensions.classNameBindings[b] = path; }
         }
       }
     }
@@ -86,6 +117,23 @@ EmberHandlebars.ViewHelper = Ember.Object.create({
     extensions.bindingContext = thisContext;
 
     return viewClass.extend(hash, extensions);
+  },
+
+  // Transform bindings from the current context to a context that can be evaluated within the view
+  // Returns null if the path shouldn't be changed
+  contextualizeBindingPath: function(path, data) {
+    var normalized = Ember.Handlebars.normalizePath(null, path, data);
+    if (normalized.isKeyword) {
+      return 'templateData.keywords.'+path;
+    } else if (Ember.isGlobalPath(path)) {
+      return null;
+    } else if (path === Ember.CONTEXT_SCOPE) {
+      return 'bindingContext';
+    } else if (Ember.USE_CONTEXT_SCOPE && path.indexOf('this.') === 0) {
+      return path;
+    } else {
+      return 'bindingContext.' + path;
+    }
   },
 
   helper: function(thisContext, path, options) {

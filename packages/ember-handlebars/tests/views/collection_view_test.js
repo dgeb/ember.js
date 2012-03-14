@@ -210,7 +210,7 @@ test("should give its item views the classBinding specified by itemClassBinding"
   });
 
   var view = Ember.View.create({
-    template: Ember.Handlebars.compile('{{#collection "TemplateTests.itemClassBindingTestCollectionView" itemClassBinding="content.isBaz"}}foo{{/collection}}')
+    template: Ember.Handlebars.compile('{{#collection "TemplateTests.itemClassBindingTestCollectionView" itemClassBinding="' + (Ember.USE_CONTEXT_SCOPE ? 'this.' : '') + 'content.isBaz"}}foo{{/collection}}')
   });
 
   Ember.run(function() {
